@@ -1,19 +1,17 @@
 ---
-
-- name: Apt Update
-  ansible.builtin.apt:
-    update_cache: true
-
+    
 - name: Apt Dependencies
   ansible.builtin.apt:
     name: "{{ tailscale_dependencies }}"
+    update_cache: true
     state: present
 
 - name: Add Tailscale Signing Key
-  ansible.builtin.apt_key:
-    url: "{{ tailscale_apt_key }}"
-    keyring: /usr/share/keyrings/tailscale-archive-keyring.gpg
-    state: present
+  ansible.builtin.get_url:
+    url: "{{ tailscale_apt_key.url }}"
+    dest: "{{ tailscale_apt_key.dest }}"
+    mode: '0644'
+    force: yes
 
 - name: Add Tailscale Repository - Legacy
   ansible.builtin.apt_repository:
@@ -32,7 +30,7 @@
     uris: "{{ tailscale_deb822_source.uris }}"
     suites: "{{ tailscale_deb822_source.suites }}"
     components: "{{ tailscale_deb822_source.components }}"
-    signed-by: /usr/share/keyrings/tailscale-archive-keyring.gpg
+    signed-by: "{{ tailscale_apt_key.dest }}"
     enabled: true
   when: >
     (ansible_distribution == "Debian" and ansible_distribution_major_version | int >= 13)

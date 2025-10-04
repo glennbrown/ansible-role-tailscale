@@ -6,7 +6,10 @@ tailscale_dependencies:
   - apt-transport-https
   - python3-apt
 
-tailscale_apt_key: https://pkgs.tailscale.com/stable/{{ ansible_distribution | lower }}/{{ ansible_distribution_release | lower }}.noarmor.gpg
+tailscale_apt_key: 
+  url: 'https://pkgs.tailscale.com/stable/{{ ansible_distribution | lower }}/{{ ansible_distribution_release | lower }}.noarmor.gpg'
+  dest: /usr/share/keyrings/tailscale-archive-keyring.gpg
+  
 tailscale_debian_source: 'deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/{{ ansible_distribution | lower }} {{ ansible_distribution_release | lower }} main'
 
 tailscale_deb822_source:
