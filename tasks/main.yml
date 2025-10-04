@@ -1,39 +1,47 @@
 ---
 
-- name: Install on Debian based systems
-  block:
-    - name: Apt Update
-      ansible.builtin.apt:
-        update_cache: true
+- name: Apt Update
+  ansible.builtin.apt:
+    update_cache: true
 
-    - name: Apt Dependencies
-      ansible.builtin.apt:
-        name: "{{ apt_dependencies }}"
-        state: present
+- name: Apt Dependencies
+  ansible.builtin.apt:
+    name: "{{ tailscale_dependencies }}"
+    state: present
 
-    - name: Add Tailscale Signing Key
-      ansible.builtin.apt_key:
-        url: "{{ apt_signkey }}"
-        keyring: /usr/share/keyrings/tailscale-archive-keyring.gpg
-        state: present
+- name: Add Tailscale Signing Key
+  ansible.builtin.apt_key:
+    url: "{{ tailscale_apt_key }}"
+    keyring: /usr/share/keyrings/tailscale-archive-keyring.gpg
+    state: present
 
-    - name: Add Tailscale Deb
-      ansible.builtin.apt_repository:
-        filename: "{{ tailscale_package }}"
-        repo: "{{ apt_deb }}"
-        state: present
+- name: Add Tailscale Repository - Legacy
+  ansible.builtin.apt_repository:
+    filename: "{{ tailscale_package }}"
+    repo: "{{ tailscale_debian_source }}"
+    state: present
+  when: >
+    (ansible_distribution == "Debian" and ansible_distribution_major_version | int <= 12)
+    or
+    (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int <= 23)
 
-    - name: Install Tailscale
-      ansible.builtin.apt:
-        name: "{{ tailscale_package }}"
-        state: present
-        update_cache: true
-  when: ansible_os_family == 'Debian'
+- name: Add Tailscale Repository - Modern
+  ansible.builtin.deb822_repository:
+    name: "{{ tailscale_package }}"
+    types: deb
+    uris: "{{ tailscale_deb822_source.uris }}"
+    suites: "{{ tailscale_deb822_source.suites }}"
+    components: "{{ tailscale_deb822_source.components }}"
+    signed-by: /usr/share/keyrings/tailscale-archive-keyring.gpg
+    enabled: true
+  when: >
+    (ansible_distribution == "Debian" and ansible_distribution_major_version | int >= 13)
+    or
+    (ansible_distribution == "Ubuntu" and ansible_distribution_major_version | int >= 24)
 
-- name: Install on MacOS using homebrew
-  community.general.homebrew_cask:
+- name: Install Tailscale
+  ansible.builtin.apt:
     name: "{{ tailscale_package }}"
     state: present
-    update_homebrew: true
-  when: ansible_os_family == 'Darwin'
+    update_cache: true
     
