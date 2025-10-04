@@ -10,7 +10,7 @@ tailscale_apt_key: https://pkgs.tailscale.com/stable/{{ ansible_distribution | l
 tailscale_debian_source: 'deb [signed-by=/usr/share/keyrings/tailscale-archive-keyring.gpg] https://pkgs.tailscale.com/stable/{{ ansible_distribution | lower }} {{ ansible_distribution_release | lower }} main'
 
 tailscale_deb822_source:
-  uris: 'https://pkgs.tailscale.com/stable/{{ ansible_distribution | lower }}''
+  uris: 'https://pkgs.tailscale.com/stable/{{ ansible_distribution | lower }}'
   suites: '{{ ansible_distribution_release | lower }}'
   components: main
   
