@@ -30,7 +30,7 @@
     uris: "{{ tailscale_deb822_source.uris }}"
     suites: "{{ tailscale_deb822_source.suites }}"
     components: "{{ tailscale_deb822_source.components }}"
-    signed-by: "{{ tailscale_apt_key.dest }}"
+    signed_by: "{{ tailscale_apt_key.dest }}"
     enabled: true
   when: >
     (ansible_distribution == "Debian" and ansible_distribution_major_version | int >= 13)
