@@ -1,9 +1,10 @@
 ---
 
 tailscale_dependencies:
+  - apt-transport-https
+  - ethtool
   - gnupg2
   - gnupg-agent
-  - apt-transport-https
   - python3-apt
 
 tailscale_apt_key: 
