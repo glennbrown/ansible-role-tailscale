@@ -42,4 +42,40 @@
     name: "{{ tailscale_package }}"
     state: present
     update_cache: true
-    
+
+- name: Ensure IP Forwarding is Enabled
+  ansible.posix.sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: present
+    reload: true
+    sysctl_file: /etc/sysctl.d/99-tailscale.conf
+  loop:
+    - { name: net.ipv4.ip_forward, value: '1' }
+    - { name: net.ipv6.conf.all.forwarding, value: '1' }
+
+- name: Create systemd unit file for tailscale performance tuning
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/tailscale-performance-tuning.service
+    content: |
+      [Unit]
+      Description=Tailscale Performance Tuning
+      After=network-online.target
+      Wants=network-online.target
+
+      [Service]
+      Type=oneshot
+      ExecStart=/bin/bash -c 'NETDEV=$(ip -o route get 8.8.8.8 | awk "{print \$5}") && ethtool -K $NETDEV rx-udp-gro-forwarding on rx-gro-list off'
+      RemainAfterExit=yes
+
+      [Install]
+      WantedBy=multi-user.target
+    mode: '0644'
+    force: yes
+
+- name: Enable tailscale performance tuning service
+  ansible.builtin.systemd:
+    name: tailscale-performance-tuning.service
+    enabled: true
+    state: started
+    daemon_reload: true
